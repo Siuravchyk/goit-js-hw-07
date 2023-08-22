@@ -1,72 +1,69 @@
-import { galleryItems } from './gallery-items.js';
+import { galleryItems } from "./gallery-items.js";
 // Change code below this line
 
-const listEl = document.querySelector(".gallery");
+console.log(galleryItems);
 
+const gallery = document.querySelector(".gallery");
+let modal;
+addImageToGallery();
+onShowOriginalImage();
 
-const renderList = (arr, container) =>{ 
-    const markup = arr.map((item) => `<li class="gallery_item"> 
-    <a class="gallery_link" href="${item.original}">
-    <img
-        class="gallery_image"
-        src="${item.preview}"
-        data-source ="${item.original}"
-        alt="${item.description}"
-        width="360"
-        />
-    </a>
-    </li>`).join("");
-    
-    container.insertAdjacentHTML("afterbegin", markup);
+function onShowOriginalImage() {
+  gallery.addEventListener("click", createModalWithImage);
 }
 
+function createImages(images) {
+  return images
+    .map(
+      (image) =>
+        `<li class="gallery__item">
+            <a class="gallery__link" href="${image.original}">
+                <img
+                    class="gallery__image"
+                    src="${image.preview}"
+                    data-source="${image.original}"
+                    alt="${image.description}"
+                    loading ="lazy"
+                />
+            </a>
+        </li>`
+    )
+    .join("");
+}
 
-const imgGalleryOnClick = (event) => { 
-    event.preventDefault();
+function addImageToGallery() {
+  gallery.innerHTML = createImages(galleryItems);
+}
 
- if (event.target.nodeName === "img") {
+function createModalWithImage(e) {
+  if (e.target.nodeName !== "IMG") {
     return;
- }
-    const clickedImg = event.target;
-    const chosenImgSource = clickedImg.dataset.source;
+  }
+  e.preventDefault();
 
-    const galleryItem = galleryItems
-        .find(item => item.original === chosenImgSource);
-
-    if (galleryItem) {
-        console.log(galleryItem.original); 
-    }
-
-    // import * as basicLightbox from 'basiclightbox'//
-
-const modalInstance = basicLightbox.create(`
-     <div class="modal"> 
-         <li class="gallery_item">
-            <img 
-                src="${galleryItem.original}" 
-                class="gallery__image"
-                data-source="large-image.jpg"
-                alt="Image description";
-            />
-        </li>
-     </div>
-`)
-    modalInstance.show()
-
-    const handlerEsc = (event) => {
-     
-        if (event.code === "Escape") {
-            modalInstance.close();
-        }
-
-    };
-
-    listEl.addEventListener("keydown", handlerEsc, {once: true});
-  
-    const containerModal = document.querySelector(".modal");
-    containerModal.style.width = `${90}%`;   
-    
+  modal = basicLightbox.create(
+    `
+		<img width="1400" height="900" src="${replaceUrl(e)}">
+	`,
+    { onClose: (modal) => document.body.classList.remove("scroll-hidden") }
+  );
+  modal.show();
+  document.body.classList.add("scroll-hidden");
+  onCloseModal();
 }
 
-renderList(galleryItems, listEl);
-listEl.addEventListener("click", imgGalleryOnClick);
+function replaceUrl(img) {
+  return img.target.dataset.source;
+}
+
+function onCloseModal() {
+  window.addEventListener("keydown", checkPressEsc);
+}
+
+function checkPressEsc(e) {
+  console.log(e.code);
+  if (e.code === "Escape") {
+    modal.close();
+    window.removeEventListener("keydown", checkPressEsc);
+  }
+}
